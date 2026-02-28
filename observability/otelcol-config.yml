@@ -1,0 +1,71 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Enriches every span/metric with host and OS info
+  resourcedetection:
+    detectors: [env, system]
+    system:
+      hostname_sources: [os]
+
+  # Removes PII from span attributes before any export.
+  # Centralised here so instrumentation code never needs to
+  # remember which fields to exclude.
+  transform/sanitize_pii:
+    error_mode: ignore
+    trace_statements:
+      - context: span
+        statements:
+          # Payment / financial data
+          - delete_key(attributes, "credit_card.number")
+          - delete_key(attributes, "credit_card.cvv")
+          - delete_key(attributes, "credit_card.expiry")
+          # Customer identity
+          - delete_key(attributes, "customer.email")
+          - delete_key(attributes, "customer.username")
+          - delete_key(attributes, "customer.phone")
+          # Addresses
+          - delete_key(attributes, "billing.address")
+          - delete_key(attributes, "shipping.address")
+          - delete_key(attributes, "billing.city")
+          - delete_key(attributes, "shipping.city")
+          # Strip token= query parameters from URLs
+          - replace_pattern(attributes["url.query"], "token=[^&]*", "token=REDACTED")
+          - replace_pattern(attributes["http.url"], "token=[^&]*", "token=REDACTED")
+
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+
+exporters:
+  # Traces → Jaeger via OTLP
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  # Metrics → exposed on :8889 for Prometheus to scrape
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: nopcommerce
+
+  # Debug exporter — logs a summary to collector stdout (useful during dev)
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resourcedetection, transform/sanitize_pii, batch]
+      exporters: [otlp/jaeger, debug]
+
+    metrics:
+      receivers: [otlp]
+      processors: [resourcedetection, batch]
+      exporters: [prometheus, debug]
