@@ -1,10 +1,12 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Transactions;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Configuration;
 using Nop.Core.Domain.Common;
 using Nop.Core.Events;
+using Nop.Core.Observability;
 
 namespace Nop.Data;
 
@@ -342,7 +344,21 @@ public partial class EntityRepository<TEntity> : IRepository<TEntity> where TEnt
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        await _dataProvider.InsertEntityAsync(entity);
+        using var span = NopActivitySource.Source.StartActivity(
+            $"db.insert {typeof(TEntity).Name}",
+            ActivityKind.Client);
+        span?.SetTag("db.operation", "INSERT");
+        span?.SetTag("db.entity_type", typeof(TEntity).Name);
+
+        try
+        {
+            await _dataProvider.InsertEntityAsync(entity);
+        }
+        catch (Exception ex)
+        {
+            span?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
 
         //event notification
         if (publishEvent)
@@ -395,7 +411,21 @@ public partial class EntityRepository<TEntity> : IRepository<TEntity> where TEnt
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        await _dataProvider.UpdateEntityAsync(entity);
+        using var span = NopActivitySource.Source.StartActivity(
+            $"db.update {typeof(TEntity).Name}",
+            ActivityKind.Client);
+        span?.SetTag("db.operation", "UPDATE");
+        span?.SetTag("db.entity_type", typeof(TEntity).Name);
+
+        try
+        {
+            await _dataProvider.UpdateEntityAsync(entity);
+        }
+        catch (Exception ex)
+        {
+            span?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
+        }
 
         //event notification
         if (publishEvent)
@@ -435,16 +465,30 @@ public partial class EntityRepository<TEntity> : IRepository<TEntity> where TEnt
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        switch (entity)
-        {
-            case ISoftDeletedEntity softDeletedEntity:
-                softDeletedEntity.Deleted = true;
-                await _dataProvider.UpdateEntityAsync(entity);
-                break;
+        using var span = NopActivitySource.Source.StartActivity(
+            $"db.delete {typeof(TEntity).Name}",
+            ActivityKind.Client);
+        span?.SetTag("db.operation", "DELETE");
+        span?.SetTag("db.entity_type", typeof(TEntity).Name);
 
-            default:
-                await _dataProvider.DeleteEntityAsync(entity);
-                break;
+        try
+        {
+            switch (entity)
+            {
+                case ISoftDeletedEntity softDeletedEntity:
+                    softDeletedEntity.Deleted = true;
+                    await _dataProvider.UpdateEntityAsync(entity);
+                    break;
+
+                default:
+                    await _dataProvider.DeleteEntityAsync(entity);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            span?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
         }
 
         //event notification

@@ -1,5 +1,7 @@
-﻿using Nop.Core.Events;
+﻿using System.Diagnostics;
+using Nop.Core.Events;
 using Nop.Core.Infrastructure;
+using Nop.Core.Observability;
 using Nop.Services.Logging;
 
 namespace Nop.Services.Events;
@@ -22,6 +24,12 @@ public partial class EventPublisher : IEventPublisher
         //get all event consumers
         var consumers = EngineContext.Current.ResolveAll<IConsumer<TEvent>>().ToList();
 
+        using var span = NopActivitySource.Source.StartActivity(
+            $"event {typeof(TEvent).Name}",
+            ActivityKind.Internal);
+        span?.SetTag("event.type", typeof(TEvent).Name);
+        span?.SetTag("event.consumers_count", consumers.Count);
+
         foreach (var consumer in consumers)
         {
             try
@@ -34,6 +42,8 @@ public partial class EventPublisher : IEventPublisher
             }
             catch (Exception exception)
             {
+                span?.SetStatus(ActivityStatusCode.Error, exception.Message);
+
                 //log error, we put in to nested try-catch to prevent possible cyclic (if some error occurs)
                 try
                 {
