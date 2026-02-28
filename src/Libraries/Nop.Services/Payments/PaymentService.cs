@@ -1,6 +1,8 @@
-﻿using Nop.Core;
+﻿using System.Diagnostics;
+using Nop.Core;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Payments;
+using Nop.Core.Observability;
 using Nop.Services.Catalog;
 using Nop.Services.Customers;
 
@@ -71,7 +73,35 @@ public partial class PaymentService : IPaymentService
                                 .LoadPluginBySystemNameAsync(processPaymentRequest.PaymentMethodSystemName, customer, processPaymentRequest.StoreId)
                             ?? throw new NopException("Payment method couldn't be loaded");
 
-        return await paymentMethod.ProcessPaymentAsync(processPaymentRequest);
+        var paymentMethodName = processPaymentRequest.PaymentMethodSystemName;
+
+        using var span = NopActivitySource.Source.StartActivity("nop.payment.process", ActivityKind.Internal);
+        span?.SetTag("payment.method", paymentMethodName);
+
+        ProcessPaymentResult paymentResult;
+        try
+        {
+            paymentResult = await paymentMethod.ProcessPaymentAsync(processPaymentRequest);
+        }
+        catch (Exception ex)
+        {
+            span?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            NopMeter.PaymentResult.Add(1,
+                new KeyValuePair<string, object>("payment.method", paymentMethodName),
+                new KeyValuePair<string, object>("payment.status", "failure"));
+            throw;
+        }
+
+        var status = paymentResult.Success ? "success" : "failure";
+        span?.SetTag("payment.status", status);
+        if (!paymentResult.Success)
+            span?.SetStatus(ActivityStatusCode.Error, string.Join("; ", paymentResult.Errors));
+
+        NopMeter.PaymentResult.Add(1,
+            new KeyValuePair<string, object>("payment.method", paymentMethodName),
+            new KeyValuePair<string, object>("payment.status", status));
+
+        return paymentResult;
     }
 
     /// <summary>
