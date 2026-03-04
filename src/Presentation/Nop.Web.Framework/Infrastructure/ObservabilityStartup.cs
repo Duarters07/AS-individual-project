@@ -39,7 +39,11 @@ public class ObservabilityStartup : INopStartup
                 .AddAspNetCoreInstrumentation()
                 .AddRuntimeInstrumentation()
                 .SetExemplarFilter(ExemplarFilterType.TraceBased)
-                .AddOtlpExporter(options => options.Endpoint = new Uri(otlpEndpoint)));
+                .AddOtlpExporter((exporterOptions, readerOptions) =>
+                {
+                    exporterOptions.Endpoint = new Uri(otlpEndpoint);
+                    readerOptions.TemporalityPreference = MetricReaderTemporalityPreference.Cumulative;
+                }));
     }
 
     public void Configure(IApplicationBuilder application)
