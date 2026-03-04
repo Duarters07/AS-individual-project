@@ -19,4 +19,28 @@ public static class NopMeter
             name: "nop.checkout.duration",
             unit: "ms",
             description: "End-to-end duration of PlaceOrderAsync in milliseconds.");
+
+    // Counts inventory adjustments, tagged by adjustment method and low-stock notification outcome.
+    public static readonly Counter<long> InventoryAdjustment =
+        _meter.CreateCounter<long>(
+            name: "nop.inventory.adjustment",
+            unit: "{adjustment}",
+            description: "Number of inventory adjustments by method and low-stock notification outcome.");
+
+    // Records the stock quantity remaining after each inventory adjustment.
+    // Allows tracking the distribution of remaining stock across all products sold.
+    public static readonly Histogram<long> StockRemaining =
+        _meter.CreateHistogram<long>(
+            name: "nop.inventory.stock_remaining",
+            unit: "{unit}",
+            description: "Stock quantity remaining after each inventory adjustment, by inventory method.");
+
+    // Counts the number of times a product stock reached zero after an inventory adjustment.
+    // Unlike low_stock_notified (fires before the last unit), this fires at the exact moment
+    // the product can no longer be sold — enabling immediate catalogue management.
+    public static readonly Counter<long> StockOut =
+        _meter.CreateCounter<long>(
+            name: "nop.inventory.stockout",
+            unit: "{event}",
+            description: "Number of times a product stock reached zero after an inventory adjustment.");
 }

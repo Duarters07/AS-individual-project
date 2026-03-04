@@ -17,6 +17,8 @@ using Nop.Services.Security;
 using Nop.Services.Shipping.Date;
 using Nop.Services.Stores;
 using Nop.Services.Vendors;
+using Nop.Core.Observability;
+using System.Diagnostics;
 
 namespace Nop.Services.Catalog;
 
@@ -1704,94 +1706,143 @@ public partial class ProductService : IProductService
         if (quantityToChange == 0)
             return;
 
-        if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock)
+        var lowStockNotified = false;
+        var stockAdjusted = false;
+        long? stockAfter = null;
+
+        using var span = NopActivitySource.Source.StartActivity("nop.inventory.adjust", ActivityKind.Internal);
+        span?.SetTag("product.id", product.Id);
+        span?.SetTag("inventory.quantity_change", quantityToChange);
+        span?.SetTag("inventory.method", product.ManageInventoryMethod.ToString());
+
+        try
         {
-            //update stock quantity
-            if (product.UseMultipleWarehouses)
+            if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock)
             {
-                //use multiple warehouses
-                if (quantityToChange < 0)
-                    await ReserveInventoryAsync(product, quantityToChange);
+                span?.SetTag("inventory.multi_warehouse", product.UseMultipleWarehouses);
+
+                //update stock quantity
+                if (product.UseMultipleWarehouses)
+                {
+                    //use multiple warehouses
+                    if (quantityToChange < 0)
+                        await ReserveInventoryAsync(product, quantityToChange);
+                    else
+                        await UnblockReservedInventoryAsync(product, quantityToChange);
+                }
                 else
-                    await UnblockReservedInventoryAsync(product, quantityToChange);
-            }
-            else
-            {
-                //do not use multiple warehouses
-                //simple inventory management
-                product.StockQuantity += quantityToChange;
-                await UpdateProductAsync(product);
-
-                //quantity change history
-                await AddStockQuantityHistoryEntryAsync(product, quantityToChange, product.StockQuantity, product.WarehouseId, message);
-            }
-
-            var totalStock = await GetTotalStockQuantityAsync(product);
-
-            await ApplyLowStockActivityAsync(product, totalStock);
-
-            //send email notification
-            if (quantityToChange < 0 && totalStock < product.NotifyAdminForQuantityBelow)
-            {
-                //do not inject IWorkflowMessageService via constructor because it'll cause circular references
-                var workflowMessageService = EngineContext.Current.Resolve<IWorkflowMessageService>();
-                await workflowMessageService.SendQuantityBelowStoreOwnerNotificationAsync(product, _localizationSettings.DefaultAdminLanguageId);
-
-                if (product.VendorId != 0)
                 {
-                    var vendor = await _vendorService.GetVendorByIdAsync(product.VendorId);
-                    await workflowMessageService.SendQuantityBelowVendorNotificationAsync(product, vendor, _localizationSettings.DefaultAdminLanguageId);
+                    //do not use multiple warehouses
+                    //simple inventory management
+                    product.StockQuantity += quantityToChange;
+                    await UpdateProductAsync(product);
+
+                    //quantity change history
+                    await AddStockQuantityHistoryEntryAsync(product, quantityToChange, product.StockQuantity, product.WarehouseId, message);
                 }
-            }
-        }
 
-        if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStockByAttributes)
-        {
-            var combination = await _productAttributeParser.FindProductAttributeCombinationAsync(product, attributesXml);
-            if (combination != null)
-            {
-                combination.StockQuantity += quantityToChange;
-                await _productAttributeService.UpdateProductAttributeCombinationAsync(combination);
+                var totalStock = await GetTotalStockQuantityAsync(product);
+                stockAfter = totalStock;
+                stockAdjusted = true;
 
-                //quantity change history
-                await AddStockQuantityHistoryEntryAsync(product, quantityToChange, combination.StockQuantity, message: message, combinationId: combination.Id);
-
-                if (product.AllowAddingOnlyExistingAttributeCombinations)
-                {
-                    var totalStockByAllCombinations = await (await _productAttributeService.GetAllProductAttributeCombinationsAsync(product.Id))
-                        .ToAsyncEnumerable()
-                        .SumAsync(c => c.StockQuantity);
-
-                    await ApplyLowStockActivityAsync(product, totalStockByAllCombinations);
-                }
+                await ApplyLowStockActivityAsync(product, totalStock);
 
                 //send email notification
-                if (quantityToChange < 0 && combination.StockQuantity < combination.NotifyAdminForQuantityBelow)
+                if (quantityToChange < 0 && totalStock < product.NotifyAdminForQuantityBelow)
                 {
+                    lowStockNotified = true;
                     //do not inject IWorkflowMessageService via constructor because it'll cause circular references
                     var workflowMessageService = EngineContext.Current.Resolve<IWorkflowMessageService>();
-                    await workflowMessageService.SendQuantityBelowStoreOwnerNotificationAsync(combination, _localizationSettings.DefaultAdminLanguageId);
+                    await workflowMessageService.SendQuantityBelowStoreOwnerNotificationAsync(product, _localizationSettings.DefaultAdminLanguageId);
 
                     if (product.VendorId != 0)
                     {
                         var vendor = await _vendorService.GetVendorByIdAsync(product.VendorId);
-                        await workflowMessageService.SendQuantityBelowVendorNotificationAsync(combination, vendor, _localizationSettings.DefaultAdminLanguageId);
+                        await workflowMessageService.SendQuantityBelowVendorNotificationAsync(product, vendor, _localizationSettings.DefaultAdminLanguageId);
                     }
                 }
             }
+
+            if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStockByAttributes)
+            {
+                var combination = await _productAttributeParser.FindProductAttributeCombinationAsync(product, attributesXml);
+
+                span?.SetTag("inventory.combination_found", combination != null);
+
+                if (combination != null)
+                {
+                    combination.StockQuantity += quantityToChange;
+                    await _productAttributeService.UpdateProductAttributeCombinationAsync(combination);
+
+                    //quantity change history
+                    await AddStockQuantityHistoryEntryAsync(product, quantityToChange, combination.StockQuantity, message: message, combinationId: combination.Id);
+
+                    stockAfter = combination.StockQuantity;
+                    stockAdjusted = true;
+
+                    if (product.AllowAddingOnlyExistingAttributeCombinations)
+                    {
+                        var totalStockByAllCombinations = await (await _productAttributeService.GetAllProductAttributeCombinationsAsync(product.Id))
+                            .ToAsyncEnumerable()
+                            .SumAsync(c => c.StockQuantity);
+
+                        await ApplyLowStockActivityAsync(product, totalStockByAllCombinations);
+                    }
+
+                    //send email notification
+                    if (quantityToChange < 0 && combination.StockQuantity < combination.NotifyAdminForQuantityBelow)
+                    {
+                        lowStockNotified = true;
+                        //do not inject IWorkflowMessageService via constructor because it'll cause circular references
+                        var workflowMessageService = EngineContext.Current.Resolve<IWorkflowMessageService>();
+                        await workflowMessageService.SendQuantityBelowStoreOwnerNotificationAsync(combination, _localizationSettings.DefaultAdminLanguageId);
+
+                        if (product.VendorId != 0)
+                        {
+                            var vendor = await _vendorService.GetVendorByIdAsync(product.VendorId);
+                            await workflowMessageService.SendQuantityBelowVendorNotificationAsync(combination, vendor, _localizationSettings.DefaultAdminLanguageId);
+                        }
+                    }
+                }
+            }
+
+            //bundled products
+            var attributeValues = await _productAttributeParser.ParseProductAttributeValuesAsync(attributesXml);
+            foreach (var attributeValue in attributeValues)
+            {
+                if (attributeValue.AttributeValueType != AttributeValueType.AssociatedToProduct)
+                    continue;
+
+                //associated product (bundle)
+                var associatedProduct = await GetProductByIdAsync(attributeValue.AssociatedProductId);
+                if (associatedProduct != null)
+                    await AdjustInventoryAsync(associatedProduct, quantityToChange * attributeValue.Quantity, message);
+            }
+
+            if (stockAfter.HasValue)
+                span?.SetTag("inventory.stock_after", stockAfter.Value);
+            span?.SetTag("inventory.low_stock_notified", lowStockNotified.ToString().ToLower());
+            span?.SetTag("inventory.stock_adjusted", stockAdjusted);
+
+            NopMeter.InventoryAdjustment.Add(1,
+                new KeyValuePair<string, object>("inventory.method", product.ManageInventoryMethod.ToString()),
+                new KeyValuePair<string, object>("inventory.low_stock_notified", lowStockNotified.ToString().ToLower()),
+                new KeyValuePair<string, object>("inventory.stock_adjusted", stockAdjusted.ToString().ToLower()));
+
+            if (stockAfter.HasValue)
+            {
+                NopMeter.StockRemaining.Record(stockAfter.Value,
+                    new KeyValuePair<string, object>("inventory.method", product.ManageInventoryMethod.ToString()));
+
+                if (stockAfter.Value <= 0)
+                    NopMeter.StockOut.Add(1,
+                        new KeyValuePair<string, object>("inventory.method", product.ManageInventoryMethod.ToString()));
+            }
         }
-
-        //bundled products
-        var attributeValues = await _productAttributeParser.ParseProductAttributeValuesAsync(attributesXml);
-        foreach (var attributeValue in attributeValues)
+        catch (Exception ex)
         {
-            if (attributeValue.AttributeValueType != AttributeValueType.AssociatedToProduct)
-                continue;
-
-            //associated product (bundle)
-            var associatedProduct = await GetProductByIdAsync(attributeValue.AssociatedProductId);
-            if (associatedProduct != null) 
-                await AdjustInventoryAsync(associatedProduct, quantityToChange * attributeValue.Quantity, message);
+            span?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            throw;
         }
     }
 

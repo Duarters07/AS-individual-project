@@ -42,6 +42,16 @@ processors:
     timeout: 5s
     send_batch_size: 512
 
+  # Converts delta temporality (sent by the app) into cumulative temporality
+  # expected by the Prometheus exporter. This prevents the "Misaligned starting
+  # timestamps" warning that caused custom counters to be dropped intermittently.
+  # max_stale: how long to retain a series with no incoming deltas before evicting it.
+  # Set to 1h so infrequent metrics (e.g. payment counter between checkouts) are not
+  # prematurely evicted and then re-created with a new epoch (which would trigger the
+  # Misaligned warning again on the next checkout).
+  deltatocumulative:
+    max_stale: 1h
+
 exporters:
   # Traces → Jaeger via OTLP
   otlp/jaeger:
@@ -50,9 +60,16 @@ exporters:
       insecure: true
 
   # Metrics → exposed on :8889 for Prometheus to scrape
+  # enable_open_metrics: allows Prometheus to consume counter resets correctly
+  # when the app restarts (avoids "Misaligned starting timestamps" drops).
+  # metric_expiration: how long to keep exposing a metric at :8889/metrics after
+  # the last update. 1h matches max_stale above so both caches evict together;
+  # Prometheus therefore sees continuous data for 1 h after the last checkout.
   prometheus:
     endpoint: "0.0.0.0:8889"
     namespace: nopcommerce
+    enable_open_metrics: true
+    metric_expiration: 1h
 
   # Debug exporter — logs a summary to collector stdout (useful during dev)
   debug:
@@ -67,5 +84,5 @@ service:
 
     metrics:
       receivers: [otlp]
-      processors: [resourcedetection, batch]
+      processors: [resourcedetection, deltatocumulative, batch]
       exporters: [prometheus, debug]

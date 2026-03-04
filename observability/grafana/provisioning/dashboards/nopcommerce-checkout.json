@@ -55,7 +55,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum(nopcommerce_nop_payment_result_total) or vector(0)",
+          "expr": "sum(max_over_time(nopcommerce_nop_payment_result_total[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
         }
@@ -90,7 +90,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum(nopcommerce_nop_payment_result_total{payment_status=\"success\"}) or vector(0)",
+          "expr": "sum(max_over_time(nopcommerce_nop_payment_result_total{payment_status=\"success\"}[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
         }
@@ -128,7 +128,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum(nopcommerce_nop_payment_result_total{payment_status=\"failure\"}) or vector(0)",
+          "expr": "sum(max_over_time(nopcommerce_nop_payment_result_total{payment_status=\"failure\"}[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
         }
@@ -261,8 +261,201 @@
       ]
     },
     {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
+      "id": 18,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "title": "Inventory Adjustments by Method",
+      "description": "Rate of inventory adjustments per second, broken down by inventory management method (ManageStock, ManageStockByAttributes, DontManageStock).",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum by(inventory_method) (rate(nopcommerce_nop_inventory_adjustment_total[5m]))",
+          "legendFormat": "{{inventory_method}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
+      "id": 19,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Low-Stock Alerts Triggered",
+      "description": "Number of inventory adjustments that triggered a low-stock notification in the selected time window. A non-zero value means products are running out during checkout — check stock levels before next peak.",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum(max_over_time(nopcommerce_nop_inventory_adjustment_total{inventory_low_stock_notified=\"true\"}[$__range])) or vector(0)",
+          "legendFormat": "__auto",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 5,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
+      "id": 20,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "title": "Stock Remaining — p50 / p95 / p99",
+      "description": "Distribution of stock quantity remaining after each inventory adjustment. If the p50 drops to 1-2 units during a peak, it is an early warning of stock depletion before customers see 'Out of Stock'.",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "histogram_quantile(0.50, sum by(le) (rate(nopcommerce_nop_inventory_stock_remaining_bucket[5m])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(nopcommerce_nop_inventory_stock_remaining_bucket[5m])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(nopcommerce_nop_inventory_stock_remaining_bucket[5m])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 21 },
+      "id": 21,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Adjustments Without Stock Change",
+      "description": "Inventory adjustments that did not actually change stock (DontManageStock or ManageStockByAttributes with combination not found). A non-zero combination-not-found value signals a product configuration error.",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum(max_over_time(nopcommerce_nop_inventory_adjustment_total{inventory_stock_adjusted=\"false\"}[$__range])) or vector(0)",
+          "legendFormat": "__auto",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 21 },
+      "id": 22,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Stock-Outs",
+      "description": "Number of times a product stock reached zero after an inventory adjustment in the selected window. Unlike low-stock alerts (fired before the last unit), this fires at the exact moment the product can no longer be sold.",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum(max_over_time(nopcommerce_nop_inventory_stockout_total[$__range])) or vector(0)",
+          "legendFormat": "__auto",
+          "refId": "A"
+        }
+      ]
+    },
+    {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 29 },
       "id": 8,
       "title": "HTTP Layer",
       "type": "row"
@@ -281,7 +474,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 30 },
       "id": 9,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
@@ -312,7 +505,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 12, "y": 14 },
+      "gridPos": { "h": 8, "w": 8, "x": 12, "y": 30 },
       "id": 10,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
@@ -346,7 +539,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 4, "x": 20, "y": 14 },
+      "gridPos": { "h": 8, "w": 4, "x": 20, "y": 30 },
       "id": 11,
       "options": {
         "colorMode": "background",
@@ -369,7 +562,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 38 },
       "id": 12,
       "title": ".NET Runtime Health",
       "type": "row"
@@ -388,7 +581,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 23 },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 39 },
       "id": 13,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
@@ -419,7 +612,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 23 },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 39 },
       "id": 14,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
@@ -450,7 +643,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 23 },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 39 },
       "id": 15,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
@@ -469,7 +662,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 47 },
       "id": 16,
       "title": "Trace Explorer",
       "type": "row"
@@ -477,7 +670,7 @@
     {
       "datasource": { "type": "jaeger", "uid": "${jaeger}" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 32 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 48 },
       "id": 17,
       "options": {},
       "title": "Checkout Flow — Recent Traces (service: nopcommerce, op: nop.order.place)",
