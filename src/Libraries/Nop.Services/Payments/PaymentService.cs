@@ -79,18 +79,24 @@ public partial class PaymentService : IPaymentService
         span?.SetTag("payment.method", paymentMethodName);
 
         ProcessPaymentResult paymentResult;
+        var sw = Stopwatch.StartNew();
         try
         {
             paymentResult = await paymentMethod.ProcessPaymentAsync(processPaymentRequest);
         }
         catch (Exception ex)
         {
+            sw.Stop();
             span?.SetStatus(ActivityStatusCode.Error, ex.Message);
             NopMeter.PaymentResult.Add(1,
                 new KeyValuePair<string, object>("payment.method", paymentMethodName),
                 new KeyValuePair<string, object>("payment.status", "failure"));
+            NopMeter.PaymentDuration.Record(sw.Elapsed.TotalMilliseconds,
+                new KeyValuePair<string, object>("payment.method", paymentMethodName),
+                new KeyValuePair<string, object>("payment.status", "failure"));
             throw;
         }
+        sw.Stop();
 
         var status = paymentResult.Success ? "success" : "failure";
         span?.SetTag("payment.status", status);
@@ -98,6 +104,9 @@ public partial class PaymentService : IPaymentService
             span?.SetStatus(ActivityStatusCode.Error, string.Join("; ", paymentResult.Errors));
 
         NopMeter.PaymentResult.Add(1,
+            new KeyValuePair<string, object>("payment.method", paymentMethodName),
+            new KeyValuePair<string, object>("payment.status", status));
+        NopMeter.PaymentDuration.Record(sw.Elapsed.TotalMilliseconds,
             new KeyValuePair<string, object>("payment.method", paymentMethodName),
             new KeyValuePair<string, object>("payment.status", status));
 

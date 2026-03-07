@@ -1,4 +1,4 @@
-using System.Diagnostics.Metrics;
+﻿using System.Diagnostics.Metrics;
 
 namespace Nop.Core.Observability;
 
@@ -14,8 +14,6 @@ public static class NopMeter
             description: "Number of payment processing attempts by method and outcome.");
 
     // Counts order placement attempts, tagged by payment method and outcome.
-    // Explicit counter for "orders per minute" and "order failure rate" panels — more readable
-    // than deriving order counts from the checkout duration histogram's _count series.
     public static readonly Counter<long> OrderPlaced =
         _meter.CreateCounter<long>(
             name: "nop.order.placed",
@@ -37,16 +35,20 @@ public static class NopMeter
             description: "Number of inventory adjustments by method and low-stock notification outcome.");
 
     // Records the stock quantity remaining after each inventory adjustment.
-    // Allows tracking the distribution of remaining stock across all products sold.
     public static readonly Histogram<long> StockRemaining =
         _meter.CreateHistogram<long>(
             name: "nop.inventory.stock_remaining",
             unit: "{unit}",
             description: "Stock quantity remaining after each inventory adjustment, by inventory method.");
 
+    // Records the duration of the payment provider call in milliseconds, by method and outcome.
+    public static readonly Histogram<double> PaymentDuration =
+        _meter.CreateHistogram<double>(
+            name: "nop.payment.duration",
+            unit: "ms",
+            description: "Duration of the payment provider call in milliseconds, by method and outcome.");
+
     // Counts the number of times a product stock reached zero after an inventory adjustment.
-    // Unlike low_stock_notified (fires before the last unit), this fires at the exact moment
-    // the product can no longer be sold — enabling immediate catalogue management.
     public static readonly Counter<long> StockOut =
         _meter.CreateCounter<long>(
             name: "nop.inventory.stockout",
