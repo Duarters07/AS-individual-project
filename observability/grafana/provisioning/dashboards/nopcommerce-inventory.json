@@ -1,0 +1,311 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Story 2 of 3 — Every order reduces stock. This dashboard shows the downstream inventory impact of the checkout flow.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "1 — Checkout Business KPIs",
+      "tooltip": "Order throughput, checkout latency and payment success rates",
+      "type": "link",
+      "url": "/d/nopcommerce-checkout"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "3 — Service Health",
+      "tooltip": "HTTP layer, error rates and .NET runtime metrics",
+      "type": "link",
+      "url": "/d/nopcommerce-service-health"
+    }
+  ],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Stock at a Glance",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 1 },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Stock-Outs",
+      "description": "Number of times a product stock hit zero after an adjustment in the selected window. This is the moment a product can no longer be sold.",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum(max_over_time(nopcommerce_nop_inventory_stockout_total[$__range])) or vector(0)",
+          "legendFormat": "__auto",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 1 },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Low-Stock Alerts Triggered",
+      "description": "Adjustments that triggered a low-stock notification — products approaching zero before customers see 'Out of Stock'.",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum(max_over_time(nopcommerce_nop_inventory_adjustment_total{inventory_low_stock_notified=\"true\"}[$__range])) or vector(0)",
+          "legendFormat": "__auto",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 1 },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Adjustments Without Stock Change",
+      "description": "Adjustments that did not change stock (DontManageStock or attribute combination not found). A non-zero value may indicate a product configuration issue.",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum(max_over_time(nopcommerce_nop_inventory_adjustment_total{inventory_stock_adjusted=\"false\"}[$__range])) or vector(0)",
+          "legendFormat": "__auto",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 10,
+      "title": "Adjustment Activity",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "showPoints": "never" },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 11,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "title": "Inventory Adjustments by Method",
+      "description": "Rate of inventory adjustments per second broken down by inventory management method (ManageStock, ManageStockByAttributes, DontManageStock).",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum by(inventory_method) (rate(nopcommerce_nop_inventory_adjustment_total[5m]))",
+          "legendFormat": "{{inventory_method}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "fillOpacity": 5, "lineWidth": 2, "showPoints": "never" },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 12,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "title": "Stock Remaining — p50 / p95 / p99",
+      "description": "Distribution of stock quantity after each adjustment. A falling p50 during a traffic spike is an early warning of stock depletion — act before customers see 'Out of Stock'.",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "histogram_quantile(0.50, sum by(le) (rate(nopcommerce_nop_inventory_stock_remaining_bucket[5m])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(nopcommerce_nop_inventory_stock_remaining_bucket[5m])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(nopcommerce_nop_inventory_stock_remaining_bucket[5m])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 20,
+      "title": "Distributed Traces",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "jaeger", "uid": "${jaeger}" },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 15 },
+      "id": 21,
+      "options": {},
+      "title": "Recent Inventory Adjustment Traces (op: nop.inventory.adjust)",
+      "description": "Each trace corresponds to one AdjustInventoryAsync call triggered by a placed order. Click to see which product was affected and how long the DB write took.",
+      "type": "traces",
+      "targets": [
+        {
+          "datasource": { "type": "jaeger", "uid": "${jaeger}" },
+          "queryType": "search",
+          "refId": "A",
+          "service": "nopcommerce",
+          "operation": "nop.inventory.adjust",
+          "limit": 20
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["nopcommerce", "inventory", "observability"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "label": "Prometheus",
+        "multi": false,
+        "name": "prometheus",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      },
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "label": "Jaeger",
+        "multi": false,
+        "name": "jaeger",
+        "options": [],
+        "query": "jaeger",
+        "refresh": 1,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "2 — Inventory Impact",
+  "uid": "nopcommerce-inventory",
+  "version": 1
+}

@@ -12,18 +12,43 @@
       }
     ]
   },
-  "description": "End-to-end observability for the nopCommerce checkout flow — business metrics, HTTP layer, .NET runtime health, and distributed traces.",
+  "description": "Story 1 of 3 — Business perspective: how many orders are flowing, how fast is checkout, and are payments succeeding?",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
   "id": null,
-  "links": [],
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "2 — Inventory Impact",
+      "tooltip": "Stock levels and inventory adjustments driven by orders",
+      "type": "link",
+      "url": "/d/nopcommerce-inventory"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": false,
+      "title": "3 — Service Health",
+      "tooltip": "HTTP layer, error rates and .NET runtime metrics",
+      "type": "link",
+      "url": "/d/nopcommerce-service-health"
+    }
+  ],
   "panels": [
     {
       "collapsed": false,
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
       "id": 1,
-      "title": "Business Metrics",
+      "title": "Order Throughput",
       "type": "row"
     },
     {
@@ -32,16 +57,240 @@
         "defaults": {
           "color": { "mode": "fixed", "fixedColor": "blue" },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
-          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
           "unit": "short"
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
       "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Orders Placed",
+      "description": "Total order placement attempts in the selected time window.",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum(max_over_time(nopcommerce_nop_order_placed_total[$__range])) or vector(0)",
+          "legendFormat": "__auto",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "green" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Successful Orders",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum(max_over_time(nopcommerce_nop_order_placed_total{order_success=\"true\"}[$__range])) or vector(0)",
+          "legendFormat": "__auto",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Failed Orders",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum(max_over_time(nopcommerce_nop_order_placed_total{order_success=\"false\"}[$__range])) or vector(0)",
+          "legendFormat": "__auto",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 500 },
+              { "color": "red", "value": 1000 }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "p95 Checkout Duration",
+      "description": "Green < 500 ms, yellow < 1 s, red >= 1 s.",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "histogram_quantile(0.95, sum by(le) (increase(nopcommerce_nop_checkout_duration_milliseconds_bucket[$__range])))",
+          "legendFormat": "p95",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "showPoints": "never" },
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "false" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "true" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+      "id": 6,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "title": "Order Rate — Success vs Failure",
+      "description": "Rate of order placement attempts per second, split by success/failure.",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "sum by(order_success) (rate(nopcommerce_nop_order_placed_total[5m]))",
+          "legendFormat": "{{order_success}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "fillOpacity": 5, "lineWidth": 2, "showPoints": "never" },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+      "id": 7,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "title": "Checkout Duration — p50 / p95 / p99",
+      "description": "End-to-end latency of PlaceOrderAsync. Spikes here indicate DB or payment processor slowness.",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "histogram_quantile(0.50, sum by(le) (rate(nopcommerce_nop_checkout_duration_milliseconds_bucket[5m])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "histogram_quantile(0.95, sum by(le) (rate(nopcommerce_nop_checkout_duration_milliseconds_bucket[5m])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(nopcommerce_nop_checkout_duration_milliseconds_bucket[5m])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+      "id": 10,
+      "title": "Payment Processing",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 14 },
+      "id": 11,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -67,16 +316,13 @@
         "defaults": {
           "color": { "mode": "fixed", "fixedColor": "green" },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
-      "id": 3,
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 14 },
+      "id": 12,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -113,8 +359,8 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
-      "id": 4,
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 14 },
+      "id": 13,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -138,75 +384,29 @@
       "datasource": { "type": "prometheus", "uid": "${prometheus}" },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 500 },
-              { "color": "red", "value": 1000 }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
-      "id": 5,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto"
-      },
-      "title": "p95 Checkout Duration",
-      "type": "stat",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "histogram_quantile(0.95, sum by(le) (increase(nopcommerce_nop_checkout_duration_milliseconds_bucket[$__range])))",
-          "legendFormat": "p95",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
           "color": { "mode": "palette-classic" },
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "showPoints": "never" },
           "unit": "reqps"
         },
         "overrides": [
           {
             "matcher": { "id": "byName", "options": "failure" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }
-            ]
+            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
           },
           {
             "matcher": { "id": "byName", "options": "success" },
-            "properties": [
-              { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
-            ]
+            "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
-      "id": 6,
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 18 },
+      "id": 14,
       "options": {
         "legend": { "displayMode": "list", "placement": "bottom" },
         "tooltip": { "mode": "multi", "sort": "none" }
       },
       "title": "Payment Rate — Success vs Failure",
+      "description": "A sustained failure rate here means a payment provider issue — correlate with traces below.",
       "type": "timeseries",
       "targets": [
         {
@@ -218,462 +418,20 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "fillOpacity": 5,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
-      "id": 7,
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
-      },
-      "title": "Checkout Duration — p50 / p95 / p99",
-      "type": "timeseries",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "histogram_quantile(0.50, sum by(le) (rate(nopcommerce_nop_checkout_duration_milliseconds_bucket[5m])))",
-          "legendFormat": "p50",
-          "refId": "A"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(nopcommerce_nop_checkout_duration_milliseconds_bucket[5m])))",
-          "legendFormat": "p95",
-          "refId": "B"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(nopcommerce_nop_checkout_duration_milliseconds_bucket[5m])))",
-          "legendFormat": "p99",
-          "refId": "C"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
-      "id": 18,
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
-      },
-      "title": "Inventory Adjustments by Method",
-      "description": "Rate of inventory adjustments per second, broken down by inventory management method (ManageStock, ManageStockByAttributes, DontManageStock).",
-      "type": "timeseries",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum by(inventory_method) (rate(nopcommerce_nop_inventory_adjustment_total[5m]))",
-          "legendFormat": "{{inventory_method}}",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
-      "id": 19,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto"
-      },
-      "title": "Low-Stock Alerts Triggered",
-      "description": "Number of inventory adjustments that triggered a low-stock notification in the selected time window. A non-zero value means products are running out during checkout — check stock levels before next peak.",
-      "type": "stat",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum(max_over_time(nopcommerce_nop_inventory_adjustment_total{inventory_low_stock_notified=\"true\"}[$__range])) or vector(0)",
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "fillOpacity": 5,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 },
       "id": 20,
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
-      },
-      "title": "Stock Remaining — p50 / p95 / p99",
-      "description": "Distribution of stock quantity remaining after each inventory adjustment. If the p50 drops to 1-2 units during a peak, it is an early warning of stock depletion before customers see 'Out of Stock'.",
-      "type": "timeseries",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "histogram_quantile(0.50, sum by(le) (rate(nopcommerce_nop_inventory_stock_remaining_bucket[5m])))",
-          "legendFormat": "p50",
-          "refId": "A"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "histogram_quantile(0.95, sum by(le) (rate(nopcommerce_nop_inventory_stock_remaining_bucket[5m])))",
-          "legendFormat": "p95",
-          "refId": "B"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(nopcommerce_nop_inventory_stock_remaining_bucket[5m])))",
-          "legendFormat": "p99",
-          "refId": "C"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 1 }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 21 },
-      "id": 21,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto"
-      },
-      "title": "Adjustments Without Stock Change",
-      "description": "Inventory adjustments that did not actually change stock (DontManageStock or ManageStockByAttributes with combination not found). A non-zero combination-not-found value signals a product configuration error.",
-      "type": "stat",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum(max_over_time(nopcommerce_nop_inventory_adjustment_total{inventory_stock_adjusted=\"false\"}[$__range])) or vector(0)",
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 21 },
-      "id": 22,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto"
-      },
-      "title": "Stock-Outs",
-      "description": "Number of times a product stock reached zero after an inventory adjustment in the selected window. Unlike low-stock alerts (fired before the last unit), this fires at the exact moment the product can no longer be sold.",
-      "type": "stat",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum(max_over_time(nopcommerce_nop_inventory_stockout_total[$__range])) or vector(0)",
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 29 },
-      "id": 8,
-      "title": "HTTP Layer",
-      "type": "row"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 30 },
-      "id": 9,
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
-      },
-      "title": "HTTP Request Rate by Route",
-      "type": "timeseries",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum by(http_route) (rate(nopcommerce_http_server_request_duration_seconds_count[5m]))",
-          "legendFormat": "{{http_route}}",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "fixed", "fixedColor": "red" },
-          "custom": {
-            "fillOpacity": 20,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 8, "x": 12, "y": 30 },
-      "id": 10,
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
-      },
-      "title": "5xx Error Rate",
-      "type": "timeseries",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum(rate(nopcommerce_http_server_request_duration_seconds_count{http_response_status_code=~\"5..\"}[5m])) or vector(0)",
-          "legendFormat": "5xx rate",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 4, "x": 20, "y": 30 },
-      "id": 11,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
-        "textMode": "auto"
-      },
-      "title": "5xx Errors (window)",
-      "type": "stat",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum(increase(nopcommerce_http_server_request_duration_seconds_count{http_response_status_code=~\"5..\"}[$__range])) or vector(0)",
-          "legendFormat": "__auto",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 38 },
-      "id": 12,
-      "title": ".NET Runtime Health",
-      "type": "row"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 39 },
-      "id": 13,
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
-      },
-      "title": "Process Memory — Working Set",
-      "type": "timeseries",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "nopcommerce_dotnet_process_memory_working_set_bytes",
-          "legendFormat": "working set",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 39 },
-      "id": 14,
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
-      },
-      "title": "GC Collections by Generation",
-      "type": "timeseries",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "sum by(generation) (rate(nopcommerce_dotnet_gc_collections_total[5m]))",
-          "legendFormat": "{{generation}}",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 39 },
-      "id": 15,
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
-      },
-      "title": "Thread Pool Queue Length",
-      "type": "timeseries",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
-          "expr": "rate(nopcommerce_dotnet_thread_pool_queue_length_total[1m])",
-          "legendFormat": "items queued/s",
-          "refId": "A"
-        }
-      ]
-    },
-    {
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 47 },
-      "id": 16,
-      "title": "Trace Explorer",
+      "title": "Distributed Traces",
       "type": "row"
     },
     {
       "datasource": { "type": "jaeger", "uid": "${jaeger}" },
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 48 },
-      "id": 17,
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 27 },
+      "id": 21,
       "options": {},
-      "title": "Checkout Flow — Recent Traces (service: nopcommerce, op: nop.order.place)",
+      "title": "Recent Order Placement Traces (op: nop.order.place)",
+      "description": "Click any trace to drill into the full span tree in Jaeger — including payment processing and inventory adjustment child spans.",
       "type": "traces",
       "targets": [
         {
@@ -689,7 +447,7 @@
   ],
   "refresh": "10s",
   "schemaVersion": 39,
-  "tags": ["nopcommerce", "checkout", "observability"],
+  "tags": ["nopcommerce", "checkout", "observability", "business"],
   "templating": {
     "list": [
       {
@@ -721,7 +479,7 @@
   "time": { "from": "now-30m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "nopCommerce — Checkout Observability",
+  "title": "1 — Checkout Business KPIs",
   "uid": "nopcommerce-checkout",
   "version": 1
 }
