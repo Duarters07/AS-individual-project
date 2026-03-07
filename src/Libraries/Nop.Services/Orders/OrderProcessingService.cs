@@ -1692,7 +1692,9 @@ public partial class OrderProcessingService : IOrderProcessingService
         }
 
         sw.Stop();
-        span?.SetTag("order.success", finalResult.Success.ToString().ToLower());
+        var orderSuccess = finalResult.Success.ToString().ToLower();
+        span?.SetTag("order.success", orderSuccess);
+        span?.SetTag("order.items_count", details.Cart.Count);
         if (finalResult.PlacedOrder != null)
             span?.SetTag("order.id", finalResult.PlacedOrder.Id);
         if (!finalResult.Success)
@@ -1700,7 +1702,11 @@ public partial class OrderProcessingService : IOrderProcessingService
 
         NopMeter.CheckoutDuration.Record(sw.Elapsed.TotalMilliseconds,
             new KeyValuePair<string, object>("payment.method", paymentMethodName),
-            new KeyValuePair<string, object>("order.success", finalResult.Success.ToString().ToLower()));
+            new KeyValuePair<string, object>("order.success", orderSuccess));
+
+        NopMeter.OrderPlaced.Add(1,
+            new KeyValuePair<string, object>("payment.method", paymentMethodName),
+            new KeyValuePair<string, object>("order.success", orderSuccess));
 
         return finalResult;
     }

@@ -13,6 +13,15 @@ public static class NopMeter
             unit: "{attempt}",
             description: "Number of payment processing attempts by method and outcome.");
 
+    // Counts order placement attempts, tagged by payment method and outcome.
+    // Explicit counter for "orders per minute" and "order failure rate" panels — more readable
+    // than deriving order counts from the checkout duration histogram's _count series.
+    public static readonly Counter<long> OrderPlaced =
+        _meter.CreateCounter<long>(
+            name: "nop.order.placed",
+            unit: "{order}",
+            description: "Number of order placement attempts by payment method and outcome.");
+
     // Records the end-to-end duration of PlaceOrderAsync, tagged by payment method and outcome.
     public static readonly Histogram<double> CheckoutDuration =
         _meter.CreateHistogram<double>(
