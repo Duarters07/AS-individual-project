@@ -2,17 +2,121 @@
   "InstalledPluginNames": [
     "Obsolete field, using only for compatibility"
   ],
-  "InstalledPlugins": [
-    {
-      "SystemName": "Payments.CheckMoneyOrder",
-      "Version": "5.00.2"
-    },
-    {
-      "SystemName": "Shipping.FixedByWeightByTotal",
-      "Version": "5.00.6"
-    }
-  ],
+  "InstalledPlugins": [],
   "PluginNamesToUninstall": [],
   "PluginNamesToDelete": [],
-  "PluginNamesToInstall": []
+  "PluginNamesToInstall": [
+    {
+      "Item1": "DiscountRequirement.MustBeAssignedToCustomerRole",
+      "Item2": null
+    },
+    {
+      "Item1": "CurrencyExchange.ECB",
+      "Item2": null
+    },
+    {
+      "Item1": "ExternalAuth.Facebook",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.NopMobileApp",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.Zettle",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.News",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.OmnibusDirective",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.Omnisend",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.RFQ",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.PowerBI",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.Dynamics365",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.Brevo",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.Polls",
+      "Item2": null
+    },
+    {
+      "Item1": "Misc.WebApi.Frontend",
+      "Item2": null
+    },
+    {
+      "Item1": "MultiFactorAuth.GoogleAuthenticator",
+      "Item2": null
+    },
+    {
+      "Item1": "Payments.PayPalCommerce",
+      "Item2": null
+    },
+    {
+      "Item1": "Payments.Manual",
+      "Item2": null
+    },
+    {
+      "Item1": "Payments.CheckMoneyOrder",
+      "Item2": null
+    },
+    {
+      "Item1": "Pickup.PickupInStore",
+      "Item2": null
+    },
+    {
+      "Item1": "Search.Lucene",
+      "Item2": null
+    },
+    {
+      "Item1": "Shipping.UPS",
+      "Item2": null
+    },
+    {
+      "Item1": "Shipping.FixedByWeightByTotal",
+      "Item2": null
+    },
+    {
+      "Item1": "Tax.FixedOrByCountryStateZip",
+      "Item2": null
+    },
+    {
+      "Item1": "Tax.Avalara",
+      "Item2": null
+    },
+    {
+      "Item1": "Widgets.AccessiBe",
+      "Item2": null
+    },
+    {
+      "Item1": "Widgets.Swiper",
+      "Item2": null
+    },
+    {
+      "Item1": "Widgets.GoogleAnalytics",
+      "Item2": null
+    },
+    {
+      "Item1": "Widgets.FacebookPixel",
+      "Item2": null
+    }
+  ]
 }
