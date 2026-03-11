@@ -1,0 +1,18 @@
+﻿{
+  "InstalledPluginNames": [
+    "Obsolete field, using only for compatibility"
+  ],
+  "InstalledPlugins": [
+    {
+      "SystemName": "Payments.CheckMoneyOrder",
+      "Version": "5.00.2"
+    },
+    {
+      "SystemName": "Shipping.FixedByWeightByTotal",
+      "Version": "5.00.6"
+    }
+  ],
+  "PluginNamesToUninstall": [],
+  "PluginNamesToDelete": [],
+  "PluginNamesToInstall": []
+}
