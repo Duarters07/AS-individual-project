@@ -39,6 +39,7 @@ using Nop.Web.Framework.Mvc.Routing;
 using Nop.Web.Infrastructure.Cache;
 using Nop.Web.Models.Media;
 using Nop.Web.Models.ShoppingCart;
+using Nop.Core.Observability;
 
 namespace Nop.Web.Controllers;
 
@@ -1354,10 +1355,17 @@ public partial class ShoppingCartController : BasePublicController
         if (checkoutAttributeWarnings.Any())
         {
             //something wrong, redisplay the page with warnings
+            NopMeter.BasketCheckoutStarted.Add(1,
+                new KeyValuePair<string, object>("has_warnings", true),
+                new KeyValuePair<string, object>("cart_items_count", cart.Count));
             var model = new ShoppingCartModel();
             model = await _shoppingCartModelFactory.PrepareShoppingCartModelAsync(model, cart, validateCheckoutAttributes: true);
             return View(model);
         }
+
+        NopMeter.BasketCheckoutStarted.Add(1,
+            new KeyValuePair<string, object>("has_warnings", false),
+            new KeyValuePair<string, object>("cart_items_count", cart.Count));
 
         var anonymousPermissed = _orderSettings.AnonymousCheckoutAllowed
                                  && _customerSettings.UserRegistrationType == UserRegistrationType.Disabled;

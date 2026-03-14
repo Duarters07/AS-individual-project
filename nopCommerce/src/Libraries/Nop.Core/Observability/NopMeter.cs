@@ -54,4 +54,13 @@ public static class NopMeter
             name: "nop.inventory.stockout",
             unit: "{event}",
             description: "Number of times a product stock reached zero after an inventory adjustment.");
+
+    // Counts checkout initiations from the basket page, tagged by attribute validation outcome.
+    // If this counter rises but nop.order.placed does not follow, it signals basket-to-order conversion
+    // loss — either attribute validation failures or user drop-off — that is invisible to any other metric.
+    public static readonly Counter<long> BasketCheckoutStarted =
+        _meter.CreateCounter<long>(
+            name: "nop.basket.checkout_started",
+            unit: "{attempt}",
+            description: "Number of checkout initiations from the basket page, split by attribute validation outcome.");
 }
