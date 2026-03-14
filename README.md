@@ -27,3 +27,4 @@ O objectivo é adicionar traces, métricas e logs distribuídos ao fluxo de chec
 | [IEventPublisher](./docs/Architecture-Analysis/IEventPublisher.md) | Sistema de eventos in-process do nopCommerce |
 | [Observabilidade — Fácil vs Difícil](./docs/Architecture-Analysis/Observability-Easy-vs-Hard.md) | Onde a instrumentação é natural e onde é problemática |
 | [Mudanças Estruturais](./docs/Architecture-Analysis/Structural-Changes.md) | O que falta instrumentar e se vale a pena mudar |
+
