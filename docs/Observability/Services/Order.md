@@ -152,3 +152,73 @@ Aplicar este tipo de telemetria no service Inventory pode vir a ser útil para:
   - **Significado operacional:** `order.items_count` como tag de span permite queries do tipo "mostrar todos os traces onde uma encomenda tinha mais de 10 artigos e o checkout demorou mais de 2 segundos" — útil para diagnosticar se a latência escala com o tamanho da encomenda.
 - Excepção no checkout (erro inesperado):
   - **Esperado no Jaeger:** span `nop.order.place` com estado `Error` e a mensagem de excepção na descrição de erro. A excepção é também registada via `_logger.ErrorAsync` antes de o span a capturar.
+
+---
+
+## 7. Fluxogramas de Investigação
+
+### Caso 1 — Checkout com Sucesso
+
+```mermaid
+flowchart TD
+    A(["POST /checkout/confirm"]) --> B["nop.order.place<br/>order.success=true"]
+    B --> C["nop.payment.process"]
+    B --> D["db.insert Order"]
+    B --> E["db.insert OrderItem x N"]
+    B --> F["nop.inventory.adjust x N"]
+    B --> G["event OrderPlacedEvent"]
+    C --> H(["Grafana: nop.order.placed +1<br/>nop.checkout.duration registado"])
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+```
+
+### Caso 2 — Falha de Pagamento
+
+```mermaid
+flowchart TD
+    A(["POST /checkout/confirm"]) --> B["nop.order.place"]
+    B --> C["nop.payment.process<br/>status=Error"]
+    C --> D{"Pagamento<br/>bem-sucedido?"}
+    D -- Não --> E["order.success=false<br/>span marcado como Error"]
+    E --> F["Sem db.insert Order<br/>Basket preservado"]
+    F --> G(["Grafana: taxa de erro sobe<br/>nop.checkout.duration order_success=false"])
+```
+
+### Caso 3 — Encomenda Duplicada (PlaceOrderWithLock)
+
+```mermaid
+flowchart TD
+    A(["1a tentativa"]) --> B["nop.order.place<br/>order.success=true"]
+    B --> C(["Encomenda colocada"])
+    D(["2a tentativa imediata"]) --> E["nop.order.place<br/>order.success=false"]
+    E --> F["Erro: Minimum order placement<br/>interval not reached"]
+    F --> G{"p99 de checkout<br/>duration alto?"}
+    G -- Sim --> H["Checkout lento provoca<br/>duplo clique dos utilizadores<br/>Investigar latencia"]
+    G -- Nao --> I(["Comportamento esperado<br/>Sem acao necessaria"])
+```
+
+### Caso 4 — Encomenda com Múltiplos Artigos
+
+```mermaid
+flowchart TD
+    A(["nop.order.place<br/>order.items_count=N"]) --> B["db.insert OrderItem x N"]
+    A --> C["nop.inventory.adjust x N"]
+    B --> D{"Duracao escala<br/>com N?"}
+    C --> D
+    D -- Sim --> E["Latencia proporcional ao<br/>tamanho do carrinho<br/>Considerar optimizacao em batch"]
+    D -- Nao --> F(["Performance estavel<br/>independentemente do tamanho"])
+```
+
+### Caso 5 — Excepção Inesperada
+
+```mermaid
+flowchart TD
+    A(["POST /checkout/confirm"]) --> B["nop.order.place"]
+    B --> C["Excepcao nao tratada"]
+    C --> D["span status=Error<br/>mensagem na descricao do span"]
+    C --> E["logger.ErrorAsync<br/>registo nos logs da aplicacao"]
+    D --> F(["Cruzar timestamp do span no Jaeger<br/>com logs para stack trace completo"])
+    E --> F
+```

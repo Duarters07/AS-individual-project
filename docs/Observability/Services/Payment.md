@@ -143,3 +143,40 @@ Aplicar este tipo de telemetria no service Payment pode vir a ser útil para:
 - Verificar os pagamentos com sucesso;
 - Se o plugin de pagamento devolve falha;
 - Encomendas com o valor zero (encomendas gratuitas devolvem `PaymentStatus`.Paid antes de atingir o plugin. Nenhum span é criado.)
+
+---
+
+## 6. Fluxogramas de Investigação
+
+### Caso 1 — Pagamento com Sucesso
+
+```mermaid
+flowchart TD
+    A(["nop.order.place"]) --> B["nop.payment.process<br/>payment.method=X"]
+    B --> C["IPaymentMethod.ProcessPaymentAsync"]
+    C --> D["payment.status=success"]
+    D --> E(["Grafana: nop.payment.result +1<br/>nop.payment.duration registado"])
+```
+
+### Caso 2 — Plugin Devolve Falha
+
+```mermaid
+flowchart TD
+    A(["nop.order.place"]) --> B["nop.payment.process<br/>payment.method=X"]
+    B --> C["IPaymentMethod.ProcessPaymentAsync"]
+    C --> D{"Resultado<br/>do plugin?"}
+    D -- Falha logica --> E["payment.status=failure<br/>span marcado como Error<br/>erros na descricao"]
+    D -- Excepcao --> F["span marcado como Error<br/>excepcao capturada<br/>metrica registada antes de rethrow"]
+    E --> G(["Grafana: taxa de falha sobe<br/>Jaeger: span Error com mensagem do provider"])
+    F --> G
+```
+
+### Caso 3 — Encomenda com Valor Zero
+
+```mermaid
+flowchart TD
+    A(["nop.order.place"]) --> B{"OrderTotal<br/>= zero?"}
+    B -- Sim --> C["Retorna PaymentStatus.Paid<br/>imediatamente"]
+    C --> D(["Sem span nop.payment.process<br/>Sem metrica registada<br/>Nao aparece no Jaeger"])
+    B -- Nao --> E["nop.payment.process<br/>fluxo normal"]
+```

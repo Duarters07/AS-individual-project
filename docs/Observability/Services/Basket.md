@@ -154,3 +154,42 @@ Aplicar este tipo de telemetria no service Basket pode vir a ser útil para:
   - **Significado operacional:** se spans `db.delete ShoppingCartItem` aparecerem num trace de encomenda falhada, indica que o carrinho está a ser limpo antes da confirmação do pagamento — um bug de integridade de dados.
 - Guarda de carrinho vazio:
   - **Esperado no Jaeger:** o span HTTP para `POST /checkout/confirm` existe e completa rapidamente com uma resposta de redirect. Não existe span `nop.order.place` — o guarda em `ConfirmOrder` redireciona antes de `PlaceOrderAsync` ser chamado. Não aparecem operações de basket.
+
+---
+
+## 9. Fluxogramas de Investigação
+
+### Caso 1 — Checkout Normal (N itens)
+
+```mermaid
+flowchart TD
+    A(["POST /checkout/confirm"]) --> B["nop.order.place"]
+    B --> C["MoveShoppingCartItemsToOrderItemsAsync"]
+    C --> D["db.delete ShoppingCartItem x N"]
+    C --> E["event ShoppingCartItemMovedToOrderItemEvent x N"]
+    C --> F["event ClearShoppingCartEvent"]
+    D --> G(["Basket totalmente processado e limpo<br/>Todos os spans presentes no trace"])
+    E --> G
+    F --> G
+```
+
+### Caso 2 — Checkout Falhado (Falha de Pagamento)
+
+```mermaid
+flowchart TD
+    A(["POST /checkout/confirm"]) --> B["nop.order.place<br/>status=Error"]
+    B --> C["nop.payment.process<br/>status=Error"]
+    C --> D{"db.delete ShoppingCartItem<br/>presente no trace?"}
+    D -- Nao --> E(["Comportamento correto<br/>Basket preservado para nova tentativa"])
+    D -- Sim --> F(["BUG de integridade de dados<br/>Carrinho limpo antes do pagamento<br/>Investigar MoveShoppingCartItemsToOrderItemsAsync"])
+```
+
+### Caso 3 — Guarda de Carrinho Vazio
+
+```mermaid
+flowchart TD
+    A(["POST /checkout/confirm"]) --> B{"Carrinho<br/>vazio?"}
+    B -- Sim --> C["ConfirmOrder redireciona<br/>antes de PlaceOrderAsync"]
+    C --> D(["Span HTTP completa rapidamente<br/>Sem span nop.order.place<br/>Sem operacoes de basket no trace"])
+    B -- Nao --> E["PlaceOrderAsync chamado<br/>fluxo normal"]
+```

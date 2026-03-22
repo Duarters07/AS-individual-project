@@ -180,3 +180,61 @@ Aplicar este tipo de telemetria no service Inventory pode vir a ser útil para:
 - ManageStockByAttributes (combinação NÃO encontrada) - produto com combinações de atributos mas artigo do carrinho com atributos não correspondentes (ex. atributos foram eliminados após a encomenda ser colocada, ou problema de integridade de dados):
   - **Esperado**: span com `inventory.combination_found=false`, `inventory.stock_adjusted=false`.
   - **Esperado no Grafana**: painel “Ajustes Sem Alteração de Stock” incrementa. Um valor não-zero aqui em produção sinaliza um erro de configuração de produto que requer investigação.
+
+---
+
+## 8. Fluxogramas de Investigação
+
+### Caso 1 — Checkout Normal (ManageStock)
+
+```mermaid
+flowchart TD
+    A[nop.inventory.adjust] --> B[stock_adjusted = true]
+    B --> C{stock_after positivo?}
+    C -- Sim --> D[nop.inventory.adjustment incrementa]
+    D --> E[nop.inventory.stock_remaining registado]
+    C -- Nao --> F[nop.inventory.stockout incrementa]
+    F --> G[Decisao de restock necessaria]
+```
+
+### Caso 2 — Stock Baixo
+
+```mermaid
+flowchart TD
+    A[nop.inventory.adjust] --> B[stock_after proximo de zero]
+    B --> C[low_stock_notified = true]
+    C --> D[Email enviado ao admin]
+    D --> E[Grafana Low Stock Alerts incrementa]
+```
+
+### Caso 3 — Rutura de Stock
+
+```mermaid
+flowchart TD
+    A[Grafana nop.inventory.stockout disparou] --> B[Jaeger filtrar nop.inventory.adjust]
+    B --> C[Verificar stock_after igual a zero]
+    C --> D[Identificar product.id no span]
+    D --> E[Decisao de restock]
+```
+
+### Caso 4 — DontManageStock
+
+```mermaid
+flowchart TD
+    A[nop.inventory.adjust DontManageStock] --> B[stock_adjusted = false]
+    B --> C[nop.inventory.adjustment incrementa]
+    C --> D[nop.inventory.stock_remaining nao regista]
+    D --> E[Comportamento esperado]
+```
+
+### Caso 5 — ManageStockByAttributes
+
+```mermaid
+flowchart TD
+    A[nop.inventory.adjust ManageStockByAttributes] --> B{combination found?}
+    B -- Sim --> C[stock_adjusted = true]
+    C --> D[Stock da combinacao decrementado]
+    B -- Nao --> E[stock_adjusted = false]
+    E --> F[Ajustes Sem Alteracao de Stock incrementa]
+    F --> G[Erro de configuracao corrigir atributos no admin]
+```
