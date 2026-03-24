@@ -1708,6 +1708,10 @@ public partial class OrderProcessingService : IOrderProcessingService
             new KeyValuePair<string, object>("payment.method", paymentMethodName),
             new KeyValuePair<string, object>("order.success", orderSuccess));
 
+        if (finalResult.PlacedOrder != null)
+            NopMeter.OrderRevenue.Add((double)details.OrderTotal,
+                new KeyValuePair<string, object>("payment.method", paymentMethodName));
+
         return finalResult;
     }
 

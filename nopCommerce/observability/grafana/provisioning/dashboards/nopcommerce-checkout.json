@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -12,7 +15,7 @@
       }
     ]
   },
-  "description": "Story 1 of 3 — Business perspective: how many orders are flowing, how fast is checkout, and are payments succeeding?",
+  "description": "Story 1 of 3 \u2014 Business perspective: how many orders are flowing, how fast is checkout, and are payments succeeding?",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -25,7 +28,7 @@
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
-      "title": "2 — Inventory Impact",
+      "title": "2 \u2014 Inventory Impact",
       "tooltip": "Stock levels and inventory adjustments driven by orders",
       "type": "link",
       "url": "/d/nopcommerce-inventory"
@@ -37,7 +40,7 @@
       "keepTime": true,
       "tags": [],
       "targetBlank": false,
-      "title": "3 — Service Health",
+      "title": "3 \u2014 Service Health",
       "tooltip": "HTTP layer, error rates and .NET runtime metrics",
       "type": "link",
       "url": "/d/nopcommerce-service-health"
@@ -46,30 +49,60 @@
   "panels": [
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
       "title": "Order Throughput",
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
           "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
       "id": 2,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "title": "Orders Placed",
@@ -77,7 +110,10 @@
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum(max_over_time(nopcommerce_nop_order_placed_total[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
@@ -85,31 +121,59 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "fixed", "fixedColor": "green" },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
           "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
       "id": 3,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "title": "Successful Orders",
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum(max_over_time(nopcommerce_nop_order_placed_total{order_success=\"true\"}[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
@@ -117,37 +181,62 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
             ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
       "id": 4,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "title": "Failed Orders",
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum(max_over_time(nopcommerce_nop_order_placed_total{order_success=\"false\"}[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
@@ -155,31 +244,56 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 500 },
-              { "color": "red", "value": 1000 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
             ]
           },
           "unit": "ms"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
       "id": 5,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "title": "p95 Checkout Duration",
@@ -187,7 +301,10 @@
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "histogram_quantile(0.95, sum by(le) (increase(nopcommerce_nop_checkout_duration_milliseconds_bucket[$__range])))",
           "legendFormat": "p95",
           "refId": "A"
@@ -195,36 +312,81 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "fillOpacity": 10, "lineWidth": 2, "showPoints": "never" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
           "unit": "reqps"
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "false" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+            "matcher": {
+              "id": "byName",
+              "options": "false"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": { "id": "byName", "options": "true" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+            "matcher": {
+              "id": "byName",
+              "options": "true"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
       "id": 6,
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "title": "Order Rate — Success vs Failure",
+      "title": "Order Rate \u2014 Success vs Failure",
       "description": "Rate of order placement attempts per second, split by success/failure.",
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum by(order_success) (rate(nopcommerce_nop_order_placed_total[5m]))",
           "legendFormat": "{{order_success}}",
           "refId": "A"
@@ -232,39 +394,68 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "fillOpacity": 5, "lineWidth": 2, "showPoints": "never" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 5,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
           "unit": "ms"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
       "id": 7,
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "title": "Checkout Duration — p50 / p95 / p99",
+      "title": "Checkout Duration \u2014 p50 / p95 / p99",
       "description": "End-to-end latency of PlaceOrderAsync. Spikes here indicate DB or payment processor slowness.",
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "histogram_quantile(0.50, sum by(le) (rate(nopcommerce_nop_checkout_duration_milliseconds_bucket[5m])))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "histogram_quantile(0.95, sum by(le) (rate(nopcommerce_nop_checkout_duration_milliseconds_bucket[5m])))",
           "legendFormat": "p95",
           "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "histogram_quantile(0.99, sum by(le) (rate(nopcommerce_nop_checkout_duration_milliseconds_bucket[5m])))",
           "legendFormat": "p99",
           "refId": "C"
@@ -273,37 +464,70 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
       "id": 10,
       "title": "Payment Processing",
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
           "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 14 },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 14
+      },
       "id": 11,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "title": "Total Payments",
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum(max_over_time(nopcommerce_nop_payment_result_total[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
@@ -311,31 +535,59 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "fixed", "fixedColor": "green" },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
           "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 14 },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 14
+      },
       "id": 12,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "title": "Successful Payments",
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum(max_over_time(nopcommerce_nop_payment_result_total{payment_status=\"success\"}[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
@@ -343,37 +595,62 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
             ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 14 },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 14
+      },
       "id": 13,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "title": "Failed Payments",
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum(max_over_time(nopcommerce_nop_payment_result_total{payment_status=\"failure\"}[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
@@ -381,36 +658,81 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "fillOpacity": 10, "lineWidth": 2, "showPoints": "never" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
           "unit": "reqps"
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "failure" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+            "matcher": {
+              "id": "byName",
+              "options": "failure"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
           },
           {
-            "matcher": { "id": "byName", "options": "success" },
-            "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }]
+            "matcher": {
+              "id": "byName",
+              "options": "success"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
         ]
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 18 },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
       "id": 14,
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "title": "Payment Rate — Success vs Failure",
-      "description": "A sustained failure rate here means a payment provider issue — correlate with traces below.",
+      "title": "Payment Rate \u2014 Success vs Failure",
+      "description": "A sustained failure rate here means a payment provider issue \u2014 correlate with traces below.",
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum by(payment_status) (rate(nopcommerce_nop_payment_result_total[5m]))",
           "legendFormat": "{{payment_status}}",
           "refId": "A"
@@ -418,39 +740,68 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "fillOpacity": 5, "lineWidth": 2, "showPoints": "never" },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 5,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
           "unit": "ms"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
       "id": 15,
       "options": {
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "none" }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
       },
-      "title": "Payment Provider Duration — p50 / p95 / p99",
-      "description": "Latency of the payment plugin call only — excludes DB writes and inventory. If this spikes while checkout duration also spikes, the payment gateway is the bottleneck. If checkout duration spikes but this stays flat, look at DB or inventory spans.",
+      "title": "Payment Provider Duration \u2014 p50 / p95 / p99",
+      "description": "Latency of the payment plugin call only \u2014 excludes DB writes and inventory. If this spikes while checkout duration also spikes, the payment gateway is the bottleneck. If checkout duration spikes but this stays flat, look at DB or inventory spans.",
       "type": "timeseries",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "histogram_quantile(0.50, sum by(le) (rate(nopcommerce_nop_payment_duration_milliseconds_bucket[5m])))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "histogram_quantile(0.95, sum by(le) (rate(nopcommerce_nop_payment_duration_milliseconds_bucket[5m])))",
           "legendFormat": "p95",
           "refId": "B"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "histogram_quantile(0.99, sum by(le) (rate(nopcommerce_nop_payment_duration_milliseconds_bucket[5m])))",
           "legendFormat": "p99",
           "refId": "C"
@@ -459,45 +810,78 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 34 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
       "id": 22,
-      "title": "Basket → Order Funnel & Error Rate",
+      "title": "Basket \u2192 Order Funnel & Error Rate",
       "type": "row"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 5 },
-              { "color": "red", "value": 15 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "red",
+                "value": 15
+              }
             ]
           },
           "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 35 },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 35
+      },
       "id": 23,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "title": "Order Error Rate",
-      "description": "Percentage of order placements that failed in the selected time window. Green < 5 %, yellow < 15 %, red ≥ 15 %.",
+      "description": "Percentage of order placements that failed in the selected time window. Green < 5 %, yellow < 15 %, red \u2265 15 %.",
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum(rate(nopcommerce_nop_order_placed_total{order_success=\"false\"}[5m])) / sum(rate(nopcommerce_nop_order_placed_total[5m])) * 100",
           "legendFormat": "__auto",
           "refId": "A"
@@ -505,24 +889,49 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
           "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 35 },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 35
+      },
       "id": 24,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "title": "Checkout Initiations (Basket)",
@@ -530,7 +939,10 @@
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum(increase(nopcommerce_nop_basket_checkout_started_total[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
@@ -538,38 +950,63 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
             ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 35 },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 35
+      },
       "id": 25,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto"
       },
       "title": "Basket Validation Failures",
-      "description": "Checkout attempts blocked by attribute validation errors in the basket step — before reaching the Order service.",
+      "description": "Checkout attempts blocked by attribute validation errors in the basket step \u2014 before reaching the Order service.",
       "type": "stat",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "${prometheus}" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
           "expr": "sum(increase(nopcommerce_nop_basket_checkout_started_total{has_warnings=\"true\"}[$__range])) or vector(0)",
           "legendFormat": "__auto",
           "refId": "A"
@@ -578,23 +1015,46 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 40 },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
       "id": 20,
       "title": "Distributed Traces",
       "type": "row"
     },
     {
-      "datasource": { "type": "jaeger", "uid": "${jaeger}" },
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 41 },
+      "datasource": {
+        "type": "jaeger",
+        "uid": "${jaeger}"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
       "id": 21,
-      "options": {},
+      "options": {
+        "footer": {
+          "show": false
+        }
+      },
       "title": "Recent Order Placement Traces (op: nop.order.place)",
-      "description": "Click any trace to drill into the full span tree in Jaeger — including payment processing and inventory adjustment child spans.",
-      "type": "traces",
+      "description": "Click any trace to drill into the full span tree in Jaeger \u2014 including payment processing and inventory adjustment child spans.",
+      "type": "table",
       "targets": [
         {
-          "datasource": { "type": "jaeger", "uid": "${jaeger}" },
+          "datasource": {
+            "type": "jaeger",
+            "uid": "${jaeger}"
+          },
           "queryType": "search",
           "refId": "A",
           "service": "nopcommerce",
@@ -602,11 +1062,78 @@
           "limit": 20
         }
       ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyEUR"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "id": 30,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "title": "Receita Total",
+      "description": "Valor acumulado de todas as encomendas com sucesso desde o arranque da aplica\u00e7\u00e3o, na moeda principal da loja.",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${prometheus}"
+          },
+          "expr": "sum(nopcommerce_nop_order_revenue_total)",
+          "legendFormat": "Receita",
+          "refId": "A"
+        }
+      ]
     }
   ],
   "refresh": "10s",
   "schemaVersion": 39,
-  "tags": ["nopcommerce", "checkout", "observability", "business"],
+  "tags": [
+    "nopcommerce",
+    "checkout",
+    "observability",
+    "business"
+  ],
   "templating": {
     "list": [
       {
@@ -635,10 +1162,13 @@
       }
     ]
   },
-  "time": { "from": "now-30m", "to": "now" },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
   "timepicker": {},
   "timezone": "browser",
-  "title": "1 — Checkout Business KPIs",
+  "title": "1 \u2014 Checkout Business KPIs",
   "uid": "nopcommerce-checkout",
   "version": 1
 }

@@ -14,7 +14,7 @@ services:
       - jaeger
 
   jaeger:
-    image: jaegertracing/all-in-one:latest
+    image: jaegertracing/all-in-one:1.53
     container_name: as-jaeger
     ports:
       - "16686:16686"  # Jaeger UI
@@ -33,7 +33,7 @@ services:
       - otel-collector
 
   grafana:
-    image: grafana/grafana:11.4.0
+    image: grafana/grafana:9.5.21
     container_name: as-grafana
     ports:
       - "3000:3000"

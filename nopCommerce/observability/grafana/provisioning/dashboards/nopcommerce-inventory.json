@@ -255,10 +255,14 @@
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 10, "w": 24, "x": 0, "y": 15 },
       "id": 21,
-      "options": {},
+      "options": {
+        "footer": {
+          "show": false
+        }
+      },
       "title": "Recent Inventory Adjustment Traces (op: nop.inventory.adjust)",
       "description": "Each trace corresponds to one AdjustInventoryAsync call triggered by a placed order. Click to see which product was affected and how long the DB write took.",
-      "type": "traces",
+      "type": "table",
       "targets": [
         {
           "datasource": { "type": "jaeger", "uid": "${jaeger}" },

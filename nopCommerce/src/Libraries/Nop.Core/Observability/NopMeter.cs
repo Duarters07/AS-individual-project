@@ -63,4 +63,12 @@ public static class NopMeter
             name: "nop.basket.checkout_started",
             unit: "{attempt}",
             description: "Number of checkout initiations from the basket page, split by attribute validation outcome.");
+
+    // Accumulates order revenue in the primary store currency for successfully placed orders.
+    // Shows total money received since app start; tagged only by payment method to avoid high cardinality.
+    public static readonly Counter<double> OrderRevenue =
+        _meter.CreateCounter<double>(
+            name: "nop.order.revenue",
+            unit: "{currency}",
+            description: "Cumulative order revenue in the primary store currency, for successfully placed orders.");
 }
