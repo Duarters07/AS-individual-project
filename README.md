@@ -18,6 +18,12 @@ O objectivo é adicionar traces, métricas e logs distribuídos ao fluxo de chec
 
 ---
 
+## Arquitectura de Instrumentação
+
+![arch](./docs/img/arch.png)
+
+---
+
 ## Documentação
 
 ### Geral
